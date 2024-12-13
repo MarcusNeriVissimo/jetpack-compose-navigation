@@ -14,9 +14,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.alura.panucci.navigation.PanucciNavHost
@@ -39,37 +41,37 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val context = LocalContext.current
-            val scope = rememberCoroutineScope()
-            val navController = rememberNavController()
-            LaunchedEffect(Unit) {
-                navController.addOnDestinationChangedListener { _, _, _ ->
-                    val routes = navController.backQueue.map {
-                        it.destination.route
-                    }
-                    Log.i("MainActivity", "onCreate: back stack - $routes")
-                }
-            }
-            val backStackEntryState by navController.currentBackStackEntryAsState()
-            val orderMessage = backStackEntryState?.savedStateHandle
-                ?.getStateFlow<String?>("order_done", null)
-                ?.collectAsState()
-            Log.i("MainActivity", "OnCreate: Mensagem pedido: ${orderMessage?.value}")
-            val currentDestination = backStackEntryState?.destination
-            val snackbarHostState = remember {
-                SnackbarHostState()
-            }
-            val scopeCoroutine = rememberCoroutineScope()
-            orderMessage?.value?.let { message ->
-                scopeCoroutine.launch {
-                    snackbarHostState.showSnackbar(message = message)
-                }
-            }
             PanucciTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+                    val scope = rememberCoroutineScope()
+                    val navController = rememberNavController()
+                    LaunchedEffect(Unit) {
+                        navController.addOnDestinationChangedListener { _, _, _ ->
+                            val routes = navController.backQueue.map {
+                                it.destination.route
+                            }
+                            Log.i("MainActivity", "onCreate: back stack - $routes")
+                        }
+                    }
+                    val backStackEntryState by navController.currentBackStackEntryAsState()
+                    val orderMessage = backStackEntryState?.savedStateHandle
+                        ?.getStateFlow<String?>("order_done", null)
+                        ?.collectAsState()
+                    Log.i("MainActivity", "OnCreate: Mensagem pedido: ${orderMessage?.value}")
+                    val currentDestination = backStackEntryState?.destination
+                    val snackbarHostState = remember {
+                        SnackbarHostState()
+                    }
+                    val scopeCoroutine = rememberCoroutineScope()
+                    orderMessage?.value?.let { message ->
+                        scopeCoroutine.launch {
+                            snackbarHostState.showSnackbar(message = message)
+                        }
+                    }
                     val currentRoute = currentDestination?.route
                     val selectedItem by remember(currentDestination) {
                         val item = when(currentRoute){
@@ -170,7 +172,8 @@ fun PanucciApp(
         floatingActionButton = {
             if (isShowFab) {
                 FloatingActionButton(
-                    onClick = onFabClick
+                    onClick = onFabClick,
+                    Modifier.testTag("BtnCheckout")
                 ) {
                     Icon(
                         Icons.Filled.PointOfSale,
@@ -195,5 +198,79 @@ private fun PanucciAppPreview() {
         Surface {
             PanucciApp {}
         }
+    }
+}
+
+@Composable
+fun PanucciApp(navController: NavHostController = rememberNavController()) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        navController.addOnDestinationChangedListener { _, _, _ ->
+            val routes = navController.backQueue.map {
+                it.destination.route
+            }
+            Log.i("MainActivity", "onCreate: back stack - $routes")
+        }
+    }
+    val backStackEntryState by navController.currentBackStackEntryAsState()
+    val orderMessage = backStackEntryState?.savedStateHandle
+        ?.getStateFlow<String?>("order_done", null)
+        ?.collectAsState()
+    val currentDestination = backStackEntryState?.destination
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+    val scopeCoroutine = rememberCoroutineScope()
+    orderMessage?.value?.let { message ->
+        scopeCoroutine.launch {
+            snackbarHostState.showSnackbar(message = message)
+        }
+    }
+    val currentRoute = currentDestination?.route
+    val selectedItem by remember(currentDestination) {
+        val item = when (currentRoute) {
+            highlistsListRoute -> BottomAppBarItem.highlightsList
+            menuRoute -> BottomAppBarItem.menu
+            drinksRoute -> BottomAppBarItem.drinks
+            else -> BottomAppBarItem.highlightsList
+        }
+        mutableStateOf(item)
+    }
+    val containsInBottomBarItems = when (currentRoute) {
+        highlistsListRoute,
+        menuRoute,
+        drinksRoute -> true
+
+        else -> false
+    }
+    val isShowFab = when (currentRoute) {
+        menuRoute,
+        drinksRoute -> true
+
+        else -> false
+    }
+    PanucciApp(
+        snackbarHostState = snackbarHostState,
+        bottomAppBarItemSelected = selectedItem,
+        onBottomAppBarItemSelectedChange = { item ->
+            navController.navigateSingleTopWithPopUpTo(item)
+        },
+        onFabClick = {
+            navController.navigateToCheckout()
+        },
+        isShowTopBar = containsInBottomBarItems,
+        isShowBottomBar = containsInBottomBarItems,
+        isShowFab = isShowFab,
+        onLogout = {
+            scope.launch {
+                context.dataStore.edit {
+                    it.remove(userPreferences)
+                }
+            }
+            navController.navigateToAuthentication()
+        }
+    ) {
+        PanucciNavHost(navController = navController)
     }
 }
