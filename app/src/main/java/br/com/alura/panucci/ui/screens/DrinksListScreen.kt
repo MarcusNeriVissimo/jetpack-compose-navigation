@@ -27,7 +27,7 @@ fun DrinksListScreen(
     modifier: Modifier = Modifier,
     title: String = "Bebidas",
     columns: Int = 2,
-    onNavigateToProductDetail: (Product) -> Unit = {},
+    onProductClick: (Product) -> Unit = {},
     uiSate: DrinksListUiState = DrinksListUiState()
 ) {
     val products = uiSate.products
@@ -57,7 +57,7 @@ fun DrinksListScreen(
                 DrinkProductCard(
                     product = p,
                     Modifier.clickable {
-                        onNavigateToProductDetail(p)
+                        onProductClick(p)
                     }
                 )
             }

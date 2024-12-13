@@ -26,9 +26,9 @@ import coil.compose.AsyncImage
 fun ProductDetailsScreen(
     uiState: ProductDetailsUiState,
     modifier: Modifier = Modifier,
-    onNavigateToCheckout: () -> Unit = {},
-    onTryFindProductAgain: () -> Unit = {},
-    onBackStack: () -> Unit = {}
+    onOrderClick: () -> Unit = {},
+    onTryFindProductAgainClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
 ) {
     when(uiState){
         ProductDetailsUiState.Failure -> {
@@ -39,11 +39,11 @@ fun ProductDetailsScreen(
              ) {
              Text(text = "Falha ao buscar o produto")
              Spacer(modifier = Modifier.height(8.dp))
-             Button(onClick = onTryFindProductAgain) {
+             Button(onClick = onTryFindProductAgainClick) {
                  Text("tentar novamente")
              }
              Spacer(modifier = Modifier.height(8.dp))
-             TextButton(onClick = onBackStack) {
+             TextButton(onClick = onBackClick) {
                  Text(text = "Voltar")
              }
          }
@@ -81,7 +81,7 @@ fun ProductDetailsScreen(
                     Text(product.price.toPlainString(), fontSize = 18.sp)
                     Text(product.description)
                     Button(
-                        onClick = { onNavigateToCheckout() },
+                        onClick = { onOrderClick() },
                         Modifier
                             .fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -96,7 +96,7 @@ fun ProductDetailsScreen(
 
 @Preview
 @Composable
-fun ProductDetailsScreenPreview() {
+fun ProductDetailsScreenWithSuccessStatePreview() {
     PanucciTheme {
         Surface {
             ProductDetailsScreen(
@@ -110,11 +110,23 @@ fun ProductDetailsScreenPreview() {
 
 @Preview
 @Composable
-fun ProductDetailsScrennWithFailurePreview(){
+fun ProductDetailsScreenWithFailureStatePreview(){
     PanucciTheme {
         Surface {
             ProductDetailsScreen(
                 uiState = ProductDetailsUiState.Failure
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ProductDetailsScreenWithLoadingStatePreview() {
+    PanucciTheme {
+        Surface {
+            ProductDetailsScreen(
+                uiState = ProductDetailsUiState.Loading,
             )
         }
     }

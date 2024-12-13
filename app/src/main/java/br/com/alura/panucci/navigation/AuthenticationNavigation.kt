@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import br.com.alura.panucci.ui.screens.AuthenticationScreen
@@ -15,7 +14,7 @@ import kotlinx.coroutines.launch
 
 private const val authenticationRoute = "authentication"
 
-fun NavGraphBuilder.authenticationScreen(navController: NavHostController){
+fun NavGraphBuilder.authenticationScreen(onNavigateToHighlights: () -> Unit){
     composable(authenticationRoute) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
@@ -27,7 +26,7 @@ fun NavGraphBuilder.authenticationScreen(navController: NavHostController){
                         it[userPreferences] = user
                     }
                 }
-                navController.navigateToHighlightsList()
+                onNavigateToHighlights()
             }
         )
     }

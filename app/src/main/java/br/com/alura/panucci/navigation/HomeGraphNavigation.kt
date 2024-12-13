@@ -2,22 +2,30 @@ package br.com.alura.panucci.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
 import androidx.navigation.navOptions
+import br.com.alura.panucci.model.Product
 import br.com.alura.panucci.ui.components.BottomAppBarItem
 
 internal const val homeGraphRoute = "home"
 
-fun NavGraphBuilder.homeGraph(navController: NavHostController){
+fun NavGraphBuilder.homeGraph(
+    onNavigateToCheckout: () -> Unit,
+    onNavigateToProductDetails: (Product) -> Unit,
+    onNavigateToHighlights: () -> Unit
+) {
     navigation(
         startDestination = highlistsListRoute,
         route = homeGraphRoute
     ) {
-        highLightsListScreen(navController)
-        menuScreen(navController)
-        drinksScreen(navController)
-        authenticationScreen(navController)
+        highlightsListScreen(
+            onNavigateToCheckout,
+            onNavigateToProductDetails,
+            onNavigateToHighlights
+        )
+        menuScreen(onNavigateToProductDetails)
+        drinksScreen(onNavigateToProductDetails)
+        authenticationScreen(onNavigateToHighlights)
     }
 }
 
